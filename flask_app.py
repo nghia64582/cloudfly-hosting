@@ -259,7 +259,7 @@ def delete_value(key):
 
 @app.route("/hello")
 def index():
-    return "Hello, World! This is 1.0"
+    return "Hello, World! This is 2.0"
 
 @app.route("/ip")
 def show_ip():
