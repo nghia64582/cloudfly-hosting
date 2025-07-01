@@ -261,6 +261,38 @@ def delete_value(key):
 def index():
     return "Hello, World! This is 2.0"
 
+@app.route("/all_keys")
+def all_keys():
+    """
+    Retrieves all keys from the key_value_store table.
+    Returns a JSON list of keys.
+    """
+    conn = None
+    cursor = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        sql = "SELECT `key` FROM `key_value_store`"
+        cursor.execute(sql)
+        keys = [row[0] for row in cursor.fetchall()]
+
+        return jsonify({"status": "success", "keys": keys})
+
+    except mysql.connector.Error as err:
+        return jsonify({
+            "status": "error",
+            "message": f"Database query error: {err}",
+            "error_code": err.errno
+        }), 500
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"An unexpected error occurred: {e}"}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn and conn.is_connected():
+            conn.close()
+
 @app.route("/ip")
 def show_ip():
     """
