@@ -1,2 +1,8 @@
-Tạo docker:
- + docker run -d --name nghia-container -e MYSQL_ROOT_PASSWORD=nghia123456 -e MYSQL_DATABASE=nghia-db -p 3306:3306 --hostname nghia-db --rm mysql:latest 
+ - Setup git repository
+    + Tạo repo trên Github
+    + Setup SSH key trên cloud
+    + Clone repo mỗi khi có update
+    + Commit code từ PC lên repo
+    + Pull code từ repo về cloud
+    + Chạy lệnh `git pull` để cập nhật code mới nhất
+    + Restart Flask app nếu cần thiết

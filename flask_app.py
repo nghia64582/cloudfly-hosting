@@ -7,19 +7,21 @@ import os # To potentially read environment variables
 app = Flask(__name__)
 
 # --- Database Configuration ---
-# IMPORTANT: For production, store these in environment variables or a secure config file.
-# For simplicity in this example, they are hardcoded.
-# Replace with your actual cPanel database credentials.
+
+# If this is cPanel, use this configuration.
 DB_HOST = 'localhost' # Often 'localhost' on cPanel, but check your hosting provider
 DB_USER = 'bxnalgz_nghia64582' # e.g., 'myuser_mydbuser'
 DB_PASSWORD = 'Nghi@131299'
 DB_NAME = 'bxnalgz_nghia64582-db' # e.g., 'myuser_mydbname'
 
-# Example of how you might get credentials from environment variables (recommended for production):
-# DB_HOST = os.environ.get('DB_HOST', 'localhost')
-# DB_USER = os.environ.get('DB_USER', 'default_user')
-# DB_PASSWORD = os.environ.get('DB_PASSWORD', 'default_password')
-# DB_NAME = os.environ.get('DB_NAME', 'default_db')
+# If this is my PC, use this configuration.
+# Uncomment the following lines and comment out the cPanel configuration above if running locally.
+if os.getenv('FLASK_ENV') == 'development': # Check if running in development mode
+    DB_HOST = 'nghia64582.online' # Often 'localhost' on cPanel, but check your hosting provider
+    DB_USER = 'bxnalgz_nghia64582' # e.g., 'myuser_mydbuser'
+    DB_PASSWORD = 'Nghi@131299'
+    DB_NAME = 'bxnalgz_nghia64582-db' # e.g., 'myuser_mydbname'
+
 
 
 # Helper function to get a database connection
