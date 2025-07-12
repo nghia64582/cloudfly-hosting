@@ -1,30 +1,23 @@
 # flask_app.py
 
-from flask import Flask, jsonify, request # Import request to get data from incoming requests
-import mysql.connector # Import the MySQL Connector library
-import os # To potentially read environment variables
+from flask import Flask, jsonify, request
+import mysql.connector
+import os
 
 app = Flask(__name__)
 
-# --- Database Configuration ---
-
-# If this is cPanel, use this configuration.
-DB_HOST = 'localhost' # Often 'localhost' on cPanel, but check your hosting provider
-DB_USER = 'bxnalgz_nghia64582' # e.g., 'myuser_mydbuser'
+DB_HOST = 'localhost'
+DB_USER = 'qrucoqmt_nghia64582'
 DB_PASSWORD = 'Nghi@131299'
-DB_NAME = 'bxnalgz_nghia64582-db' # e.g., 'myuser_mydbname'
+DB_NAME = 'qrucoqmt_nghia64582'
 
-# If this is my PC, use this configuration.
-# Uncomment the following lines and comment out the cPanel configuration above if running locally.
-if os.getenv('FLASK_ENV') == 'development': # Check if running in development mode
-    DB_HOST = 'nghia64582.online' # Often 'localhost' on cPanel, but check your hosting provider
-    DB_USER = 'bxnalgz_nghia64582' # e.g., 'myuser_mydbuser'
+if os.getenv('FLASK_ENV') == 'development':
+    DB_HOST = 'nghia64582.online'
+    DB_USER = 'qrucoqmt_nghia64582'
     DB_PASSWORD = 'Nghi@131299'
-    DB_NAME = 'bxnalgz_nghia64582-db' # e.g., 'myuser_mydbname'
+    DB_NAME = 'qrucoqmt_nghia64582'
+    print('Enviroment')
 
-
-
-# Helper function to get a database connection
 def get_db_connection():
     """Establishes and returns a new database connection."""
     return mysql.connector.connect(
