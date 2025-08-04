@@ -3,10 +3,12 @@
 from flask import Flask, jsonify, request
 import mysql.connector
 import os
+from datetime import datetime
+from mysql.connector import Error
 
 app = Flask(__name__)
 
-DB_HOST = 'localhost'
+DB_HOST = 'nghia64582.online'
 DB_USER = 'qrucoqmt_nghia64582'
 DB_PASSWORD = 'Nghi@131299'
 DB_NAME = 'qrucoqmt_nghia64582'
@@ -309,6 +311,135 @@ def show_ip():
         "ip_address": ip_address
     })
 
+def connect_to_database():
+    """
+    Establishes a single connection to the MySQL database.
+    This function is called once when the application starts.
+    """
+    print("Start connecting to MySQL database...")
+    print(f"Using DB_HOST: {DB_HOST}, DB_USER: {DB_USER}, DB_NAME: {DB_NAME}")
+    global db_connection, db_cursor
+    try:
+        db_connection = mysql.connector.connect(
+            host=DB_HOST,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            database=DB_NAME
+        )
+        if db_connection.is_connected():
+            print("Successfully connected to MySQL database")
+            db_cursor = db_connection.cursor(dictionary=True)
+        else:
+            print("Failed to connect to MySQL database")
+            db_connection = None
+            db_cursor = None
+    except Error as e:
+        print(f"Error connecting to MySQL database: {e}")
+        db_connection = None
+        db_cursor = None
+
+@app.route('/record', methods=['GET'])
+def get_records_by_date_range():
+    """
+    GET /record?start-time=dd-mm-yyyy&end-time=dd-mm-yyyy
+    Fetches all records where created_at is between the specified dates.
+    Returns a JSON list of matching records.
+    """
+    if not db_cursor:
+        return jsonify({"error": "Database connection not available."}), 500
+
+    start_time_str = request.args.get('start-time')
+    end_time_str = request.args.get('end-time')
+
+    if not start_time_str or not end_time_str:
+        return jsonify({"error": "Missing 'start-time' or 'end-time' parameters."}), 400
+
+    try:
+        # Convert string dates to a format MySQL can understand (YYYY-MM-DD)
+        start_date = datetime.strptime(start_time_str, '%d-%m-%Y').strftime('%Y-%m-%d 00:00:00')
+        end_date = datetime.strptime(end_time_str, '%d-%m-%Y').strftime('%Y-%m-%d 23:59:59')
+    except ValueError:
+        return jsonify({"error": "Invalid date format. Please use 'dd-mm-yyyy'."}), 400
+
+    try:
+        sql_query = "SELECT id, name, score, created_at FROM extraunary WHERE created_at BETWEEN %s AND %s"
+        db_cursor.execute(sql_query, (start_date, end_date))
+        records = db_cursor.fetchall()
+        # The cursor is configured to return dictionaries, so no further formatting is needed.
+        return jsonify(records), 200
+    except Error as e:
+        print(f"Database error: {e}")
+        return jsonify({"error": "An error occurred while fetching records."}), 500
+
+@app.route('/record-by-name', methods=['GET'])
+def get_records_by_name():
+    """
+    GET /record-by-name?name=<name>
+    Fetches all records with a specific name.
+    Returns a JSON list of matching records.
+    """
+    if not db_cursor:
+        return jsonify({"error": "Database connection not available."}), 500
+
+    name_to_search = request.args.get('name')
+
+    if not name_to_search:
+        return jsonify({"error": "Missing 'name' parameter."}), 400
+
+    try:
+        sql_query = "SELECT id, name, score, created_at FROM extraunary WHERE name = %s"
+        db_cursor.execute(sql_query, (name_to_search,))
+        records = db_cursor.fetchall()
+        return jsonify(records), 200
+    except Error as e:
+        print(f"Database error: {e}")
+        return jsonify({"error": "An error occurred while fetching records."}), 500
+
+@app.route('/record', methods=['POST'])
+def add_new_record():
+    """
+    POST /record
+    Adds a new record to the table.
+    Expects a JSON body with 'name', 'score', and 'created_at' in 'dd-mm-yyyy' format.
+    Returns a success message with the new record's ID.
+    """
+    if not db_connection or not db_cursor:
+        return jsonify({"error": "Database connection not available."}), 500
+
+    data = request.get_json()
+    if not data or 'name' not in data or 'score' not in data or 'created_at' not in data:
+        return jsonify({"error": "Invalid JSON body. Required fields: 'name', 'score', 'created_at'."}), 400
+
+    name = data['name']
+    score = data['score']
+    created_at_str = data['created_at']
+
+    try:
+        # Convert string date to a datetime object
+        created_at_dt = datetime.strptime(created_at_str, '%d-%m-%Y')
+    except ValueError:
+        return jsonify({"error": "Invalid 'created_at' date format. Please use 'dd-mm-yyyy'."}), 400
+    
+    # Ensure score is an integer
+    try:
+        score = int(score)
+    except ValueError:
+        return jsonify({"error": "'score' must be an integer."}), 400
+
+    try:
+        sql_query = "INSERT INTO extraunary (name, score, created_at) VALUES (%s, %s, %s)"
+        db_cursor.execute(sql_query, (name, score, created_at_dt))
+        db_connection.commit()
+        new_record_id = db_cursor.lastrowid
+        return jsonify({"message": "Record added successfully", "id": new_record_id}), 201
+    except Error as e:
+        print(f"Database error: {e}")
+        # Rollback the transaction in case of error
+        db_connection.rollback()
+        return jsonify({"error": "An error occurred while adding the record."}), 500
+
+
+connect_to_database()
 # This block is for running the app locally during development.
 # On cPanel, the web server (like Phusion Passenger) handles running your app.
 if __name__ == '__main__':
