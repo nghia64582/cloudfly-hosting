@@ -390,6 +390,10 @@ def get_records_by_name():
         sql_query = "SELECT id, name, score, created_at FROM extraunary WHERE name = %s"
         db_cursor.execute(sql_query, (name_to_search,))
         records = db_cursor.fetchall()
+        # Convert all "creeated_at" into "yyyy-MM-dd"
+        for record in records:
+            if 'created_at' in record:
+                record['created_at'] = record['created_at'].strftime('%Y-%m-%d')
         return jsonify(records), 200
     except Error as e:
         print(f"Database error: {e}")
