@@ -365,6 +365,10 @@ def get_records_by_date_range():
         sql_query = "SELECT id, name, score, created_at FROM extraunary WHERE created_at BETWEEN %s AND %s"
         db_cursor.execute(sql_query, (start_date, end_date))
         records = db_cursor.fetchall()
+        # Convert all "creeated_at" into "yyyy-MM-dd"
+        for record in records:
+            if 'created_at' in record:
+                record['created_at'] = record['created_at'].strftime('%Y-%m-%d')
         # The cursor is configured to return dictionaries, so no further formatting is needed.
         return jsonify(records), 200
     except Error as e:
