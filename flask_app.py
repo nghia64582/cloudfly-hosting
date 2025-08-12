@@ -448,7 +448,5 @@ def add_new_record():
 
 
 connect_to_database()
-# This block is for running the app locally during development.
-# On cPanel, the web server (like Phusion Passenger) handles running your app.
 if __name__ == '__main__':
-    app.run(debug=True) # debug=True is for local development only
+    app.run(debug=True)
